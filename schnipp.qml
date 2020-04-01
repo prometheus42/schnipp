@@ -30,7 +30,7 @@ Window {
     
     Pane {
         anchors.fill: parent
-        
+
         ColumnLayout {
             anchors.fill: parent
 
@@ -81,21 +81,26 @@ Window {
                             highlightLogo.destroy()
                         }
                         if (stage == 1) {
-                            // create two editable rectangles from the top down and the bottom up
-                            highlightLetterbox1 = highlightComponent.createObject(selectArea, {
-                                'y': selectArea.y,
-                                'height': Math.abs(selectArea.y - mouse.y),
-                                'color': 'green',
-                                'anchors.left': selectArea.left,
-                                'anchors.right': selectArea.right
-                            });
-                            highlightLetterbox2 = highlightComponent.createObject(selectArea, {
-                                'y': selectArea.height - Math.abs(selectArea.y - mouse.y),
-                                'height': Math.abs(selectArea.y - mouse.y),
-                                'color': 'green',
-                                'anchors.left': selectArea.left,
-                                'anchors.right': selectArea.right
-                            });
+                            if (highlightLetterbox1 !== null && highlightLetterbox2 !== null) {
+                                console.log('Letterbox rectangles already instantiated.')
+                            }
+                            else {
+                                // create two editable rectangles from the top down and the bottom up
+                                highlightLetterbox1 = highlightComponent.createObject(selectArea, {
+                                    'y': selectArea.y,
+                                    'height': Math.abs(selectArea.y - mouse.y),
+                                    'color': 'green',
+                                    'anchors.left': selectArea.left,
+                                    'anchors.right': selectArea.right
+                                });
+                                highlightLetterbox2 = highlightComponent.createObject(selectArea, {
+                                    'y': selectArea.height - Math.abs(selectArea.y - mouse.y),
+                                    'height': Math.abs(selectArea.y - mouse.y),
+                                    'color': 'green',
+                                    'anchors.left': selectArea.left,
+                                    'anchors.right': selectArea.right
+                                });
+                            }
                         }
                         else if (stage == 2) {
                             // create a new rectangle for the broadcaster logo
@@ -109,11 +114,18 @@ Window {
                     onPositionChanged: {
                         // on move, update the width of rectangle
                         if (stage == 1) {
-                            highlightLetterbox1.height = Math.abs(selectArea.y - mouse.y)
-                            highlightLetterbox2.y = selectArea.height - Math.abs(selectArea.y - mouse.y)
-                            highlightLetterbox2.height = Math.abs(selectArea.y - mouse.y)
-                            topLetterboxBar = video.metaData.resolution.height / parent.height * Math.abs(selectArea.y - mouse.y)
-                            bottomLetterboxBar = topLetterboxBar
+                            if (mouse.y < parent.height/2) {
+                                highlightLetterbox1.height = Math.abs(selectArea.y - mouse.y)
+                                highlightLetterbox2.y = selectArea.height - Math.abs(selectArea.y - mouse.y)
+                                highlightLetterbox2.height = Math.abs(selectArea.y - mouse.y)
+                                topLetterboxBar = video.metaData.resolution.height / parent.height * Math.abs(selectArea.y - mouse.y)
+                                bottomLetterboxBar = topLetterboxBar
+                            }
+                            else {
+                                highlightLetterbox2.y = mouse.y
+                                highlightLetterbox2.height = Math.abs(selectArea.height - mouse.y)
+                                bottomLetterboxBar = video.metaData.resolution.height / parent.height * Math.abs(selectArea.height - mouse.y)
+                            }
                         }
                         else if (stage == 2) {
                             // TODO: Check if mouse.{x,y} is outside video widget.
@@ -147,33 +159,28 @@ Window {
                         id: highlightComponent;
 
                         Rectangle {
-                            opacity: 0.30;
-                            /*anchors {
-                                left: parent.left;
-                                right: parent.right;
-                            }*/
+                            opacity: 0.35;
                         }
                     }
                 }
             }
 
             Pane {
-                //anchors.bottom: parent.bottom
                 anchors.margins: 10
 
                 Row {
                     spacing: 10
 
                     Button {
-                        text: 'Choose video file...'
+                        text:  qsTr('Choose video file...')
                         background.anchors.fill: this
                         spacing: 40
 
                         FileDialog {
                             id: fileDialog
-                            title: 'Choose a video file...'
+                            title: qsTr('Choose a video file...')
                             //folder: shortcuts.home
-                            nameFilters: [ 'Video Files (*.mp4 *.flv *.ts *.mts *.avi *.mkv)', 'All files (*)' ]
+                            nameFilters: [ qsTr('Video Files (*.mp4 *.flv *.ts *.mts *.avi *.mkv)'), qsTr('All files (*)') ]
                             selectMultiple: false
                             visible: false
                             onAccepted: {
@@ -196,37 +203,40 @@ Window {
                     }
                     Button {
                         id: playButton
-                        text: 'Play'
+                        text: qsTr('Play')
                         onClicked: {
                             if (video.playbackState == MediaPlayer.PlayingState) {
-                                text: 'Play'
+                                text: qsTr('Play')
                                 video.pause()
                             }
                             else if (video.playbackState == MediaPlayer.PausedState) {
-                                text = 'Pause'
+                                text = qsTr('Pause')
                                 video.play()
                             }
                             else if (video.playbackState == MediaPlayer.StoppedState) {
-                                text = 'Pause'
+                                text = qsTr('Pause')
                                 video.play()
                             }
                         }
                     }
                     Button {
-                        text: 'Stop'
+                        text: qsTr('Stop')
                         onClicked: {
                             video.stop()
-                            playButton.text = 'Play'
+                            playButton.text = qsTr('Play')
+                            selectArea.highlightLogo.destroy()
+                            selectArea.highlightLetterbox1.destroy()
+                            selectArea.highlightLetterbox2.destroy()
                         }
                     }
                     Button {
-                        text: 'Rewind'
+                        text: qsTr('Rewind')
                         onClicked: {
                             video.seek(video.position - 5000)
                         }
                     }
                     Button {
-                        text: 'Forward'
+                        text: qsTr('Forward')
                         onClicked: {
                             video.seek(video.position + 5000)
                         }
