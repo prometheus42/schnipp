@@ -1,5 +1,7 @@
 <RCC>
     <qresource prefix="/">
         <file>schnipp.qml</file>
+        <file>i18n/de_DE.ts</file>
+        <file>i18n/en_GB.ts</file>
     </qresource>
 </RCC>
