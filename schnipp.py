@@ -7,23 +7,22 @@ Sources:
  * 
 
 """
+
 import sys
 
 from PyQt5.QtCore import QUrl
+from PyQt5.QtQml import QQmlApplicationEngine
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtQuick import QQuickView
+from PyQt5.QtGui import QIcon
 
-
+ 
 if __name__ == '__main__':
-    app = QApplication([])
+    app =QApplication(sys.argv)
     app.setOrganizationName('Christian Wichmann')
     app.setApplicationName('Schnipp!')
-    view = QQuickView()
-    view.setResizeMode(QQuickView.SizeRootObjectToView)
-    view.setSource(QUrl.fromLocalFile('schnipp.qml'))
-    if view.status() == QQuickView.Error:
+    engine = QQmlApplicationEngine()
+    app.setWindowIcon(QIcon("icon.png"))
+    engine.load('schnipp.qml')
+    if not engine.rootObjects():
         sys.exit(-1)
-    view.show()
-    res = app.exec_()
-    del view
-    sys.exit(res)
+    sys.exit(app.exec_())
