@@ -19,3 +19,7 @@ To build the standalone C++ programm:
 To start the program as Python script:
 
     python3 schnipp.py
+
+## Third Party
+
+* Icon from [Tango icon](http://tango-project.org/) set under Public Domain.

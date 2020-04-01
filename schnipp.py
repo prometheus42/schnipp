@@ -21,7 +21,7 @@ if __name__ == '__main__':
     app.setOrganizationName('Christian Wichmann')
     app.setApplicationName('Schnipp!')
     engine = QQmlApplicationEngine()
-    app.setWindowIcon(QIcon("icon.png"))
+    app.setWindowIcon(QIcon("images/icon.png"))
     engine.load('schnipp.qml')
     if not engine.rootObjects():
         sys.exit(-1)
