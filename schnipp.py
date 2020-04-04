@@ -17,10 +17,10 @@ from PyQt5.QtGui import QIcon, QGuiApplication
 
 class FileIO(QObject):
     """
-    Provides functions to read and write files from QML gui.
+    Provides functions to read and write files from QML GUI.
 
     Sources:
-     - www.riverbankcomputing.com/static/Docs/PyQt5/signals_slots.html 
+     - https://www.riverbankcomputing.com/static/Docs/PyQt5/signals_slots.html 
      - https://www.riverbankcomputing.com/static/Docs/PyQt5/qml.html
     """
     def __init__(self):
