@@ -11,6 +11,7 @@ import QtQuick.Extras 1.4
 import Qt.labs.settings 1.1
 
 Window {
+    id: schnippWindow
     width: 1000
     height: 700
     title: qsTr('Schnipp!')
@@ -46,6 +47,7 @@ Window {
         onAccepted: {
             // TODO: Find better way to handle path.
             currentDirectory = fileDialog.folder
+            schnippWindow.title = `${qsTr('Schnipp!')} - ${fileDialog.folder}`
             // TODO: Extract file name defaults to settings. 
             console.log('You chose: ' + fileDialog.folder + '/concat.mp4')
             // set internal variables for data from chosen directory
