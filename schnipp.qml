@@ -295,6 +295,7 @@ Window {
                         **/
                         id: selectArea;
                         anchors.fill: parent;
+                        acceptedButtons: Qt.LeftButton | Qt.RightButton
 
                         property int stage: 1
 
@@ -412,6 +413,43 @@ Window {
                                 yv2 = video.metaData.resolution.height / parent.height * ys2   
                                 console.log('Choosen clipping on screen: (' + xs1 + ', ' + ys1 + ') to (' + xs2 + ', ' + ys2 + ').')
                                 console.log('Choosen clipping on video: (' + xv1 + ', ' + yv1 + ') to (' + xv2 + ', ' + yv2 + ').')
+                            }
+                        }
+                        onClicked: {
+                            // handle context menu
+                            if (mouse.button === Qt.RightButton && (mouse.y > Math.abs(selectArea.height - highlightLetterbox2.height) || mouse.y < highlightLetterbox1.height)) {
+                                contextMenuCrop.x = mouse.x;
+                                contextMenuCrop.y = mouse.y;
+                                contextMenuCrop.open()
+                            }
+                            if (mouse.button === Qt.RightButton && selectArea.highlightLogo.contains(mapToItem(selectArea.highlightLogo, mouse.x, mouse.y))) {
+                                console.log('Logo clicked')
+                                contextMenuLogo.x = mouse.x;
+                                contextMenuLogo.y = mouse.y;
+                                contextMenuLogo.open()
+                            }
+                        }
+                        Menu {
+                            id: contextMenuCrop
+                            MenuItem {
+                                text: 'Delete crop bars'
+                                onTriggered: {
+                                    console.log('Deleting crop bars.')
+                                    selectArea.highlightLetterbox1.y = 0
+                                    selectArea.highlightLetterbox1.height = 0
+                                    selectArea.highlightLetterbox2.y = selectArea.height
+                                    selectArea.highlightLetterbox2.height = 0
+                                }
+                            }
+                        }
+                        Menu {
+                            id: contextMenuLogo
+                            MenuItem {
+                                text: 'Delete logo'
+                                onTriggered: {
+                                    console.log('Deleting logo.')
+                                    selectArea.highlightLogo.destroy()
+                                }
                             }
                         }
 
