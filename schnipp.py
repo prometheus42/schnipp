@@ -18,7 +18,7 @@ from PyQt5.QtGui import QIcon
  
 if __name__ == '__main__':
     sys_argv = sys.argv
-    sys_argv += ['--style', 'Windows']
+    sys_argv += ['--style', 'Fusion']
     app = QApplication(sys.argv)
     app.setOrganizationName('Christian Wichmann')
     app.setApplicationName('Schnipp!')

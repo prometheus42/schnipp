@@ -13,7 +13,7 @@ import Qt.labs.settings 1.1
 Window {
     //visibility: "FullScreen"
     visibility: "Maximized"
-    
+
     Settings {
        
     }
@@ -24,8 +24,8 @@ Window {
          **/
         interval: 100; running: true; repeat: true
         onTriggered: {
-            elapsedTimeLabel.text = new Date(video.position).toLocaleTimeString(Qt.locale(), "mm.ss") +
-                                  ' / ' + new Date(video.duration).toLocaleTimeString(Qt.locale(), "mm.ss")
+            elapsedTimeLabel.text = new Date(video.position).toLocaleTimeString(Qt.locale(), "mm:ss") +
+                                  ' / ' + new Date(video.duration).toLocaleTimeString(Qt.locale(), "mm:ss")
             videoProgressBar.value = video.position / video.duration
         }
     }
@@ -69,8 +69,8 @@ Window {
                     color: '#000000ff'
                 }
 
-                source: 'video.mkv'
-                muted: true
+                source: 'concat.mp4'
+                //muted: true
 
                 MouseArea {
                     /**
@@ -310,11 +310,21 @@ Window {
                             video.grabToImage(function(result) {
                                 result.saveToFile('screengrab.png');
                             });
-                            //'# Copy block below for every part that should be included in the output.\n'
-                            //'# Timestamp format: h:m:s.ms. Unused parts can be omitted.\n'
-                            //'file {}\n'.format(concat_file_name)
-                            //'inpoint 0:0:0\n'
-                            //'outpoint 1:0:0\n'
+                            var jsonOutput = {
+                                crop: [0, selectArea.topLetterboxBar],
+                                delogo: [selectArea.xv1, selectArea.yv1, selectArea.xv2-selectArea.xv1, selectArea.yv2-selectArea.yv1],
+                                cutlist: []
+                            };
+                            var i;
+                            for (i=0; i < cutListModel.count; i++) {
+                                var tmp = cutListModel.get(i)
+                                var startTime = new Date(tmp.startTime).toLocaleTimeString(Qt.locale(), "mm:ss")
+                                var endTime = new Date(tmp.endTime).toLocaleTimeString(Qt.locale(), "mm:ss")
+                                jsonOutput['cutlist'].push([startTime, endTime])
+                            }
+                            var jsonString = JSON.stringify(jsonOutput, null, 4)
+                            console.log(jsonString)
+                            //jsonOutput.writeFile('drm_dvr.cfg', jsonOutput)
                         }
                     }
                 }
@@ -341,7 +351,7 @@ Window {
                         height: 25
                         color: "lightsteelblue"
                         radius: 5 
-                        y: list.currentItem.y
+                        y: cutListView.currentItem.y
                         Behavior on y {
                             SpringAnimation {
                                 spring: 3
