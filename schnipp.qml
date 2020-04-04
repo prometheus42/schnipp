@@ -216,6 +216,13 @@ Window {
                             console.log('Loaded resolution: ' + video.metaData.resolution)
                             console.log('Loaded pixelAspectRatio: ' + video.metaData.pixelAspectRatio)
                             console.log('Loaded videoFrameRate: ' + video.metaData.videoFrameRate)
+                            console.log('Width of Video view: ' + width)
+                            console.log('Height of Video view: ' + height)
+                            // calculate height of view depending on resolution of video and pixel size!
+                            // TODO: Check what happens if height of video is larger than its width.
+                            var videoHeightScreen = Math.ceil(width / video.metaData.pixelAspectRatio.width * video.metaData.pixelAspectRatio.height / video.metaData.resolution.width * video.metaData.resolution.height)
+                            console.log('Calculated video height in View: ' + videoHeightScreen)
+                            height = videoHeightScreen
                             selectArea.refreshHighlights()
                             // play a very little bit of the video to show first frame in View
                             play()
