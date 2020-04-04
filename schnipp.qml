@@ -8,9 +8,16 @@ import QtQuick.Dialogs 1.3
 import QtQml 2.4
 import QtQuick.Window 2.2
 import QtQuick.Extras 1.4
+import Qt.labs.settings 1.1
 
 Window {
+    //visibility: "FullScreen"
+    visibility: "Maximized"
     
+    Settings {
+       
+    }
+
     Timer {
         /**
          * Refreshes elapsed time label and progress bar to show video position.
@@ -31,8 +38,16 @@ Window {
     Pane {
         anchors.fill: parent
 
-        ColumnLayout {
+        RowLayout {
             anchors.fill: parent
+            spacing: 10
+
+        ColumnLayout {
+            //anchors.fill: parent
+            Layout.fillHeight: true
+            Layout.fillWidth: true
+            Layout.alignment: Qt.AlignLeft
+            spacing: 10
 
             Keys.onSpacePressed: video.playbackState == MediaPlayer.PlayingState ? video.pause() : video.play()
             Keys.onLeftPressed: video.seek(video.position - 5000)
@@ -77,9 +92,6 @@ Window {
                     property int yv2: 0
 
                     onPressed: {
-                        if (highlightLogo !== null) {
-                            highlightLogo.destroy()
-                        }
                         if (stage == 1) {
                             if (highlightLetterbox1 !== null && highlightLetterbox2 !== null) {
                                 console.log('Letterbox rectangles already instantiated.')
@@ -103,6 +115,9 @@ Window {
                             }
                         }
                         else if (stage == 2) {
+                            if (highlightLogo !== null) {
+                                highlightLogo.destroy()
+                            }
                             // create a new rectangle for the broadcaster logo
                             highlightLogo = highlightComponent.createObject(selectArea, {
                                 'x' : mouse.x,
@@ -206,7 +221,7 @@ Window {
                         text: qsTr('Play')
                         onClicked: {
                             if (video.playbackState == MediaPlayer.PlayingState) {
-                                text: qsTr('Play')
+                                text = qsTr('Play')
                                 video.pause()
                             }
                             else if (video.playbackState == MediaPlayer.PausedState) {
@@ -270,27 +285,176 @@ Window {
                         text: qsTr('Set Letterbox bars...')
                         onClicked: {
                             selectArea.stage = 1
+                            cutListPane.visible = false
                         }
                     }
                     RadioButton {
                         text: qsTr('Set logo...')
                         onClicked: {
                             selectArea.stage = 2
+                            cutListPane.visible = false
+                        }
+                    }
+                    RadioButton {
+                        text: qsTr('Set commercial breaks...')
+                        onClicked: {
+                            selectArea.stage = 3
+                            cutListPane.visible = true
                         }
                     }
                     RadioButton {
                         text: qsTr('Export...')
                         onClicked: {
-                            console.log('Top letterbox bar: ' + selectArea.topLetterboxBar)
-                            console.log('Bottom letterbox bar: ' + selectArea.bottomLetterboxBar)
-                            console.log('Logo: (' + selectArea.xv1 + ', ' + selectArea.yv1 + ') to (' + selectArea.xv2 + ', ' + selectArea.yv2 + ').')
+                            selectArea.stage = 4
+                            console.log(`drm_dvr --preview . --delogo x=${selectArea.xv1}:y=${selectArea.yv1}:w=${selectArea.xv2-selectArea.xv1}:h=${selectArea.yv2-selectArea.yv1} --crop in_w:in_h-${selectArea.yv2-selectArea.yv1}:0:${selectArea.yv1}`)
                             video.grabToImage(function(result) {
                                 result.saveToFile('screengrab.png');
                             });
+                            //'# Copy block below for every part that should be included in the output.\n'
+                            //'# Timestamp format: h:m:s.ms. Unused parts can be omitted.\n'
+                            //'file {}\n'.format(concat_file_name)
+                            //'inpoint 0:0:0\n'
+                            //'outpoint 1:0:0\n'
                         }
                     }
                 }
             }
+        }
+
+        Pane {
+            id: cutListPane
+            visible: false
+            Layout.minimumWidth: 250
+            Layout.maximumWidth: 250
+            Layout.fillHeight: true
+            Layout.fillWidth: true  
+            Layout.alignment: Qt.AlignRight
+            ScrollView {
+                anchors.fill: parent
+                ScrollBar.horizontal.policy: ScrollBar.AlwaysOn
+                ScrollBar.vertical.policy: ScrollBar.AlwaysOn
+
+                Component {
+                    id: highlight
+                    Rectangle { 
+                        width: parent.width
+                        height: 25
+                        color: "lightsteelblue"
+                        radius: 5 
+                        y: list.currentItem.y
+                        Behavior on y {
+                            SpringAnimation {
+                                spring: 3
+                                damping: 0.2
+                            }
+                        }
+                    }
+                }
+
+                ListView {
+                    id: cutListView
+                    anchors.fill: parent
+                    width: parent.width
+                    height: parent.height
+
+                    keyNavigationWraps: true
+                    highlightMoveDuration: 500
+                    highlightMoveVelocity: -1
+                    highlight: highlight
+                    highlightFollowsCurrentItem: true
+                    add: Transition {
+                        NumberAnimation { properties: "x,y"; from: 100; duration: 500 }
+                    }
+                    populate: Transition {
+                        NumberAnimation { properties: "x,y"; duration: 500 }
+                    }
+                    remove: Transition {
+                        ParallelAnimation {
+                            NumberAnimation { property: "opacity"; to: 0; duration: 500 }
+                            NumberAnimation { properties: "x,y"; to: 100; duration: 500 }
+                        }
+                    }
+                    
+                    spacing: 15
+                    displayMarginBeginning: 40
+                    displayMarginEnd: 40
+                    ScrollBar.vertical: ScrollBar {
+                        active: true
+                    }
+
+                    ListModel {
+                        id: cutListModel
+                    }
+                    model: cutListModel
+                   
+                    delegate: Rectangle {
+                        objectName: "delegate"
+                        width: parent.width
+                        height: 25
+                        //color: index % 2 ? 'gray' : 'white'
+                        //color: index % 2 ? 'gray' : 'white'
+                        color: '#000000ff'
+                        Text {
+                            anchors.left: parent.left
+                            text: `Cut from ${new Date(startTime).toLocaleTimeString(Qt.locale(), "mm.ss")} to ${new Date(endTime).toLocaleTimeString(Qt.locale(), "mm.ss")}`
+                            //font.pixelSize: 14
+                            MouseArea {
+                                anchors.fill: parent
+                                onClicked: cutListView.currentIndex = index
+                            }
+                        }
+                        Button {
+                            anchors.right: parent.right
+                            text: 'x'
+                            onClicked: {
+                                cutListModel.remove(index)
+                            }
+                        }
+                        ListView.onAdd: {
+                            cutListView.currentIndex = index
+                        }
+                    }
+
+                    header: Rectangle { 
+                        width: parent.width; height: 40
+                        anchors.bottomMargin: 40
+                        color: '#000000ff'
+                        Text {
+                            anchors.centerIn: parent
+                            text: 'Cut list'
+                            font.pixelSize: 16
+                        }
+                    }
+
+                    footer: Rectangle { 
+                        width: parent.width; height: 40
+                        radius: 5 
+                        anchors.topMargin: 40
+                        Row {
+                            anchors.fill: parent
+                            Button {
+                                anchors.left: parent.left
+                                width: parent.width / 2
+                                height: parent.height
+                                text: 'Set start time'
+                                onClicked: {
+                                    cutListModel.append({'startTime': video.position, 'endTime': 42})
+                                }
+                            }
+                            Button {
+                                anchors.right: parent.right
+                                width: parent.width / 2
+                                height: parent.height
+                                text: 'Set end time'
+                                onClicked: {
+                                    cutListModel.get(cutListModel.count-1).endTime = video.position
+                                }
+                            }
+                        }
+                    } 
+                }
+            }
+        }
         }
     }
 }
