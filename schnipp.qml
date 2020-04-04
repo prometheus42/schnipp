@@ -52,20 +52,25 @@ Window {
             video.source = fileDialog.folder + '/concat.mp4'
             var JsonString = FileIO.readFile(fileDialog.folder + '/drm_dvr.cfg')
             console.log('Loaded JSON data: ' + JsonString)
-            var JsonObject= JSON.parse(JsonString);
-            var cropData = JsonObject['crop']
-            selectArea.bottomLetterboxBar = cropData[1]
-            selectArea.topLetterboxBar = cropData[1]
-            var delogoData = JsonObject['delogo']
-            selectArea.xv1 = delogoData[0]
-            selectArea.yv1 = delogoData[1]
-            selectArea.xv2 = delogoData[0] + delogoData[2]
-            selectArea.yv2 = delogoData[1] + delogoData[3]
-            var cutlistData = JsonObject['cutlist']
-            for(var i = 0; i < cutlistData.length; i++) {
-                var startTime = Math.round(parseFloat(cutlistData[i][0])*1000)
-                var endTime = Math.round(parseFloat(cutlistData[i][1])*1000)
-                cutListModel.append({'startTime': startTime, 'endTime': endTime})
+            try {
+                var JsonObject= JSON.parse(JsonString);
+                var cropData = JsonObject['crop']
+                selectArea.bottomLetterboxBar = cropData[1]
+                selectArea.topLetterboxBar = cropData[1]
+                var delogoData = JsonObject['delogo']
+                selectArea.xv1 = delogoData[0]
+                selectArea.yv1 = delogoData[1]
+                selectArea.xv2 = delogoData[0] + delogoData[2]
+                selectArea.yv2 = delogoData[1] + delogoData[3]
+                var cutlistData = JsonObject['cutlist']
+                for(var i = 0; i < cutlistData.length; i++) {
+                    var startTime = Math.round(parseFloat(cutlistData[i][0])*1000)
+                    var endTime = Math.round(parseFloat(cutlistData[i][1])*1000)
+                    cutListModel.append({'startTime': startTime, 'endTime': endTime})
+                }
+            }
+            catch (e) {
+                console.log(`Could not parse JSON file: ${e}`)
             }
         }
         onRejected: {
@@ -209,6 +214,13 @@ Window {
                         }
                     }
 
+                    function recalculateSize() {
+                        // calculate height of view depending on resolution of video and pixel size!
+                        // TODO: Check what happens if height of video is larger than its width.
+                        var videoHeightScreen = Math.ceil(width / video.metaData.pixelAspectRatio.width * video.metaData.pixelAspectRatio.height / video.metaData.resolution.width * video.metaData.resolution.height)
+                        console.log('Calculated video height in View: ' + videoHeightScreen)
+                        height = videoHeightScreen
+                    }
                     onStatusChanged: {
                         if(status == MediaPlayer.Loaded) {
                             console.log('Video loaded.')
@@ -218,15 +230,18 @@ Window {
                             console.log('Loaded videoFrameRate: ' + video.metaData.videoFrameRate)
                             console.log('Width of Video view: ' + width)
                             console.log('Height of Video view: ' + height)
-                            // calculate height of view depending on resolution of video and pixel size!
-                            // TODO: Check what happens if height of video is larger than its width.
-                            var videoHeightScreen = Math.ceil(width / video.metaData.pixelAspectRatio.width * video.metaData.pixelAspectRatio.height / video.metaData.resolution.width * video.metaData.resolution.height)
-                            console.log('Calculated video height in View: ' + videoHeightScreen)
-                            height = videoHeightScreen
+                            recalculateSize()
                             selectArea.refreshHighlights()
                             // play a very little bit of the video to show first frame in View
                             play()
                             pause()
+                        }
+                    }
+
+                    onWidthChanged: {
+                        if (video.status !== MediaPlayer.NoMedia) {
+                            recalculateSize()
+                            selectArea.refreshHighlights()
                         }
                     }
 
@@ -250,7 +265,16 @@ Window {
                         property int yv2: 0
 
                         function refreshHighlights() {       
-                                console.log('Preparing highlights from config file...')
+                                console.log('Preparing views for highlights...')
+                                if (highlightLetterbox1 !== null) {
+                                    highlightLetterbox1.destroy()
+                                }
+                                if (highlightLetterbox2 !== null) {
+                                    highlightLetterbox2.destroy()
+                                }
+                                if (highlightLogo !== null) {
+                                    highlightLogo.destroy()
+                                }
                                 highlightLetterbox1 = highlightComponent.createObject(selectArea, {
                                     'y': 0,
                                     'height': parent.height / video.metaData.resolution.height * topLetterboxBar,

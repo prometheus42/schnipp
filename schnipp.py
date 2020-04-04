@@ -34,9 +34,13 @@ class FileIO(QObject):
 
     @pyqtSlot(str, result=str)
     def readFile(self, filename):
-        with open(filename.replace('file://',''), 'r') as f:
-            temp = f.read()
-            return temp
+        try:
+            with open(filename.replace('file://',''), 'r') as f:
+                temp = f.read()
+                return temp
+        except FileNotFoundError as e:
+            print(f'Could not open config file: {e}')
+        return ''
 
 
 if __name__ == '__main__':
