@@ -20,6 +20,12 @@ To start the program as Python script:
 
     python3 schnipp.py
 
+## Requirements
+
+To run Schnipp under Ubuntu 19.10 you need to install the necessary packages:
+
+    apt install python3-pyqt5 python3-pyqt5.qtquick qml-module-qtquick-controls2 qml-module-qtquick-extras qml-module-qtmultimedia qml-module-qt-labs-settings qml-module-qt-labs-folderlistmodel libqt5multimedia5-plugins
+
 ## Third Party
 
 * Icon from [Tango icon](http://tango-project.org/) set under Public Domain.

@@ -33,21 +33,40 @@ Window {
         }
     }
 
+    property string currentDirectory
+
     FileDialog {
         id: fileDialog
         title: qsTr('Choose a video file...')
         //folder: shortcuts.home
-        nameFilters: [ qsTr('Video Files (*.mp4 *.flv *.ts *.mts *.avi *.mkv)'), qsTr('All files (*)') ]
         selectMultiple: false
+        selectFolder: true
+        selectExisting: true
         visible: false
         onAccepted: {
-            console.log('You chose: ' + fileDialog.fileUrls)
-            video.source = fileDialog.fileUrls[0]
-            video.height = video.width / video.metaData.resolution.width * video.metaData.resolution.height
-            console.log('Loaded title: ' + video.metaData.title)
-            console.log('Loaded resolution: ' + video.metaData.resolution)
-            console.log('Loaded pixelAspectRatio: ' + video.metaData.pixelAspectRatio)
-            console.log('Loaded videoFrameRate: ' + video.metaData.videoFrameRate)
+            // TODO: Find better way to handle path.
+            currentDirectory = fileDialog.folder
+            // TODO: Extract file name defaults to settings. 
+            console.log('You chose: ' + fileDialog.folder + '/concat.mp4')
+            // set internal variables for data from chosen directory
+            video.source = fileDialog.folder + '/concat.mp4'
+            var JsonString = FileIO.readFile(fileDialog.folder + '/drm_dvr.cfg')
+            console.log('Loaded JSON data: ' + JsonString)
+            var JsonObject= JSON.parse(JsonString);
+            var cropData = JsonObject['crop']
+            selectArea.bottomLetterboxBar = cropData[1]
+            selectArea.topLetterboxBar = cropData[1]
+            var delogoData = JsonObject['delogo']
+            selectArea.xv1 = delogoData[0]
+            selectArea.yv1 = delogoData[1]
+            selectArea.xv2 = delogoData[0] + delogoData[2]
+            selectArea.yv2 = delogoData[1] + delogoData[3]
+            var cutlistData = JsonObject['cutlist']
+            for(var i = 0; i < cutlistData.length; i++) {
+                var startTime = Math.round(parseFloat(cutlistData[i][0])*1000)
+                var endTime = Math.round(parseFloat(cutlistData[i][1])*1000)
+                cutListModel.append({'startTime': startTime, 'endTime': endTime})
+            }
         }
         onRejected: {
             console.log("Canceled")
@@ -92,6 +111,33 @@ Window {
         video.pause()
         video.seek(video.duration)
     }
+
+    function handleExport() {
+        console.log('Export all data to JSON file...')
+        // create JSON object
+        var jsonOutput = {
+            crop: [0, selectArea.topLetterboxBar],
+            //crop: ['in_w', `in_h-${selectArea.bottomLetterboxBar+selectArea.topLetterboxBar}`, '0', `${selectArea.topLetterboxBar}`],
+            delogo: [selectArea.xv1, selectArea.yv1, selectArea.xv2-selectArea.xv1, selectArea.yv2-selectArea.yv1],
+            cutlist: []
+        };
+        // add all entries from cut list
+        var i;
+        for (i=0; i < cutListModel.count; i++) {
+            var tmp = cutListModel.get(i)
+            var startTime = tmp.startTime / 1000
+            var endTime = tmp.endTime / 1000
+            jsonOutput['cutlist'].push([startTime, endTime])
+        }
+        // output JSON to file
+        var jsonString = JSON.stringify(jsonOutput, null, 4)
+        console.log('Export configuration: ' + jsonString)
+        FileIO.writeFile(currentDirectory + '/drm_dvr.cfg', jsonString)
+        // write View to image file
+        video.grabToImage(function(result) {
+            result.saveToFile('screengrab.png');
+        });
+    }
     
     Pane {
         id: mainPane
@@ -99,24 +145,26 @@ Window {
 
         Keys.onSpacePressed: video.playbackState == MediaPlayer.PlayingState ? video.pause() : video.play()
         Keys.onPressed: {
+            if (event.key == Qt.Key_Q) {
+                console.log('Quitting Schnipp.')
+                Qt.quit()
+            }
+
             if ((event.key == Qt.Key_Right) && (event.modifiers & Qt.ControlModifier))
                 video.seek(video.position + 60000)
             else if ((event.key == Qt.Key_Right) && (event.modifiers & Qt.ShiftModifier))
                 video.seek(video.position + 250)
-            else if ((event.key == Qt.Key_Right) && (event.modifiers & Qt.AltModifier)) {
-                video.seek(video.duration)
-                //video.stop()
-            }
+            else if ((event.key == Qt.Key_Right) && (event.modifiers & Qt.AltModifier)) 
+                doGoEnd()
             else if ((event.key == Qt.Key_Right))
                 video.seek(video.position + 5000)
+
             if ((event.key == Qt.Key_Left) && (event.modifiers & Qt.ControlModifier))
                 video.seek(video.position - 60000)
             else if ((event.key == Qt.Key_Left) && (event.modifiers & Qt.ShiftModifier))
                 video.seek(video.position - 250)
-            else if ((event.key == Qt.Key_Left) && (event.modifiers & Qt.AltModifier)) {
-                video.seek(0)
-                // xxxxxxxxxxxxxxxxxxxxxxxxxxx
-            }
+            else if ((event.key == Qt.Key_Left) && (event.modifiers & Qt.AltModifier)) 
+                doGoStart()
             else if ((event.key == Qt.Key_Left))
                 video.seek(video.position - 5000)
         }
@@ -148,11 +196,28 @@ Window {
                         color: '#000000ff'
                     }
 
-                    source: 'concat.mp4'
-
                     onStopped: {
                         console.log('Video stopped.')
                         playButton.text = qsTr('Play')
+                    }
+
+                    onPositionChanged: {
+                        if (video.position > 1000 && video.duration - video.position < 1000) {
+                            playButton.text = qsTr('Play')
+                            video.pause();
+                        }
+                    }
+
+                    onStatusChanged: {
+                        if(status == MediaPlayer.Loaded) {
+                            console.log('Video loaded.')
+                            console.log('Loaded title: ' + video.metaData.title)
+                            console.log('Loaded resolution: ' + video.metaData.resolution)
+                            console.log('Loaded pixelAspectRatio: ' + video.metaData.pixelAspectRatio)
+                            console.log('Loaded videoFrameRate: ' + video.metaData.videoFrameRate)
+                            video.height = video.width / video.metaData.resolution.width * video.metaData.resolution.height
+                            selectArea.refreshHighlights()
+                        }
                     }
 
                     MouseArea {
@@ -166,13 +231,38 @@ Window {
 
                         property int stage: 1
 
-                        // properties to be set in the GUI (in pixel of given video!)
+                        // properties to be set in the GUI (in pixel of the video independent from size of View!)
                         property int topLetterboxBar: 0
                         property int bottomLetterboxBar: 0
                         property int xv1: 0
                         property int xv2: 0 
                         property int yv1: 0 
                         property int yv2: 0
+
+                        function refreshHighlights() {       
+                                console.log('Preparing highlights from config file...')
+                                highlightLetterbox1 = highlightComponent.createObject(selectArea, {
+                                    'y': 0,
+                                    'height': parent.height / video.metaData.resolution.height * topLetterboxBar,
+                                    'color': 'green',
+                                    'anchors.left': selectArea.left,
+                                    'anchors.right': selectArea.right
+                                });
+                                highlightLetterbox2 = highlightComponent.createObject(selectArea, {
+                                    'y': selectArea.height - (parent.height / video.metaData.resolution.height * bottomLetterboxBar),
+                                    'height': parent.height / video.metaData.resolution.height * bottomLetterboxBar,
+                                    'color': 'green',
+                                    'anchors.left': selectArea.left,
+                                    'anchors.right': selectArea.right
+                                });
+                                highlightLogo = highlightComponent.createObject(selectArea, {
+                                    'x' : parent.width / video.metaData.resolution.width * xv1,
+                                    'y' : parent.height / video.metaData.resolution.height * yv1,
+                                    'width' : parent.width / video.metaData.resolution.width * (xv2-xv1),
+                                    'height' : parent.height / video.metaData.resolution.height * (yv2-yv1),
+                                    'color': 'yellow'
+                                });
+                        }
 
                         onPressed: {
                             if (stage == 1) {
@@ -270,7 +360,7 @@ Window {
                         spacing: 10
 
                         Button {
-                            text:  qsTr('Choose video file...')
+                            text:  qsTr('Choose directory...')
                             background.anchors.fill: this
                             spacing: 40
                             onClicked: onChooseFile()
@@ -334,46 +424,28 @@ Window {
                             text: qsTr('Set Letterbox bars...')
                             onClicked: {
                                 selectArea.stage = 1
-                                cutListPane.visible = false
+                                //cutListPane.visible = false
                             }
                         }
                         RadioButton {
                             text: qsTr('Set logo...')
                             onClicked: {
                                 selectArea.stage = 2
-                                cutListPane.visible = false
+                                //cutListPane.visible = false
                             }
                         }
                         RadioButton {
                             text: qsTr('Set commercial breaks...')
                             onClicked: {
                                 selectArea.stage = 3
-                                cutListPane.visible = true
+                                //cutListPane.visible = true
                             }
                         }
                         RadioButton {
                             text: qsTr('Export...')
                             onClicked: {
                                 selectArea.stage = 4
-                                console.log(`drm_dvr --preview . --delogo x=${selectArea.xv1}:y=${selectArea.yv1}:w=${selectArea.xv2-selectArea.xv1}:h=${selectArea.yv2-selectArea.yv1} --crop in_w:in_h-${selectArea.yv2-selectArea.yv1}:0:${selectArea.yv1}`)
-                                video.grabToImage(function(result) {
-                                    result.saveToFile('screengrab.png');
-                                });
-                                var jsonOutput = {
-                                    crop: [0, selectArea.topLetterboxBar],
-                                    delogo: [selectArea.xv1, selectArea.yv1, selectArea.xv2-selectArea.xv1, selectArea.yv2-selectArea.yv1],
-                                    cutlist: []
-                                };
-                                var i;
-                                for (i=0; i < cutListModel.count; i++) {
-                                    var tmp = cutListModel.get(i)
-                                    var startTime = new Date(tmp.startTime).toLocaleTimeString(Qt.locale(), "mm:ss")
-                                    var endTime = new Date(tmp.endTime).toLocaleTimeString(Qt.locale(), "mm:ss")
-                                    jsonOutput['cutlist'].push([startTime, endTime])
-                                }
-                                var jsonString = JSON.stringify(jsonOutput, null, 4)
-                                console.log(jsonString)
-                                //jsonOutput.writeFile('drm_dvr.cfg', jsonOutput)
+                                handleExport()
                             }
                         }
                     }
@@ -382,7 +454,7 @@ Window {
 
             Pane {
                 id: cutListPane
-                visible: false
+                visible: true
                 Layout.minimumWidth: 250
                 Layout.maximumWidth: 250
                 Layout.fillHeight: true
@@ -390,8 +462,6 @@ Window {
                 Layout.alignment: Qt.AlignRight
                 ScrollView {
                     anchors.fill: parent
-                    ScrollBar.horizontal.policy: ScrollBar.AlwaysOn
-                    ScrollBar.vertical.policy: ScrollBar.AlwaysOn
 
                     Component {
                         id: highlight
