@@ -22,14 +22,27 @@ Window {
     Settings {  
     }
 
+    function formatTime(videoTime) {
+        // Source: https://stackoverflow.com/a/6313008
+        var sec_num = parseInt(videoTime/1000, 10); // don't forget the second param
+        var hours   = Math.floor(sec_num / 3600);
+        var minutes = Math.floor((sec_num - (hours * 3600)) / 60);
+        var seconds = sec_num - (hours * 3600) - (minutes * 60);
+
+        if (hours   < 10) {hours   = "0"+hours;}
+        if (minutes < 10) {minutes = "0"+minutes;}
+        if (seconds < 10) {seconds = "0"+seconds;}
+        return hours+':'+minutes+':'+seconds;
+        //return new Date(videoTime).toLocaleTimeString(Qt.locale('en_GB'), 'hh:mm:ss')
+    }
+
     Timer {
         /**
          * Refreshes elapsed time label and progress bar to show video position.
          **/
         interval: 100; running: true; repeat: true
         onTriggered: {
-            elapsedTimeLabel.text = new Date(video.position).toLocaleTimeString(Qt.locale(), "mm:ss") +
-                                  ' / ' + new Date(video.duration).toLocaleTimeString(Qt.locale(), "mm:ss")
+            elapsedTimeLabel.text = formatTime(video.position) + ' / ' + formatTime(video.duration)
             videoProgressBar.value = video.position / video.duration
         }
     }
@@ -479,15 +492,7 @@ Window {
                                 //cutListPane.visible = false
                             }
                         }
-                        RadioButton {
-                            text: qsTr('Set commercial breaks...')
-                            focusPolicy: Qt.NoFocus
-                            onClicked: {
-                                selectArea.stage = 3
-                                //cutListPane.visible = true
-                            }
-                        }
-                        RadioButton {
+                        Button {
                             text: qsTr('Export...')
                             focusPolicy: Qt.NoFocus
                             onClicked: {
@@ -573,7 +578,7 @@ Window {
                                 anchors.top: parent.top
                                 anchors.bottom: parent.bottom
                                 font.pixelSize: 14
-                                text: `Start ${new Date(startTime).toLocaleTimeString(Qt.locale(), "mm:ss")} | End ${new Date(endTime).toLocaleTimeString(Qt.locale(), "mm:ss")}`
+                                text: `Start ${formatTime(startTime)} | End ${formatTime(endTime)}`
                                 MouseArea {
                                     anchors.fill: parent
                                     onClicked: cutListView.currentIndex = index
