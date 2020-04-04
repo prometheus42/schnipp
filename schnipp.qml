@@ -82,11 +82,13 @@ Window {
     }
 
     function doGoStart() {
+        playButton.text = qsTr('Play')
         video.pause()
         video.seek(0)
     }
 
     function doGoEnd() {
+        playButton.text = qsTr('Play')
         video.pause()
         video.seek(video.duration)
     }
@@ -147,10 +149,11 @@ Window {
                     }
 
                     source: 'concat.mp4'
-                    //muted: true
 
-                    //onStopped: console.log("gfdsg")
-                    //video.stopped.connect: clickHandler
+                    onStopped: {
+                        console.log('Video stopped.')
+                        playButton.text = qsTr('Play')
+                    }
 
                     MouseArea {
                         /**
