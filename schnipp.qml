@@ -50,8 +50,20 @@ Window {
             spacing: 10
 
             Keys.onSpacePressed: video.playbackState == MediaPlayer.PlayingState ? video.pause() : video.play()
-            Keys.onLeftPressed: video.seek(video.position - 5000)
-            Keys.onRightPressed: video.seek(video.position + 5000)
+            Keys.onPressed: {
+                if ((event.key == Qt.Key_Right) && (event.modifiers & Qt.ControlModifier))
+                    video.seek(video.position + 60000)
+                else if ((event.key == Qt.Key_Right) && (event.modifiers & Qt.ShiftModifier))
+                    video.seek(video.position + 250)
+                else if ((event.key == Qt.Key_Right))
+                    video.seek(video.position + 5000)
+                if ((event.key == Qt.Key_Left) && (event.modifiers & Qt.ControlModifier))
+                    video.seek(video.position - 60000)
+                else if ((event.key == Qt.Key_Left) && (event.modifiers & Qt.ShiftModifier))
+                    video.seek(video.position - 250)
+                else if ((event.key == Qt.Key_Left))
+                    video.seek(video.position - 5000)
+            }
             
             Video {
                 id: video
