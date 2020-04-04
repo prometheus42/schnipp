@@ -177,7 +177,6 @@ Window {
             spacing: 10
 
             ColumnLayout {
-                //anchors.fill: parent
                 Layout.fillHeight: true
                 Layout.fillWidth: true
                 Layout.alignment: Qt.AlignLeft
@@ -185,10 +184,9 @@ Window {
                 
                 Video {
                     id: video
-                    //width: parent.width
-                    //height: 500
                     Layout.fillHeight: true
                     Layout.fillWidth: true
+                    Layout.alignment: Qt.AlignTop
 
                     focus: true
                     Rectangle {
@@ -218,8 +216,10 @@ Window {
                             console.log('Loaded resolution: ' + video.metaData.resolution)
                             console.log('Loaded pixelAspectRatio: ' + video.metaData.pixelAspectRatio)
                             console.log('Loaded videoFrameRate: ' + video.metaData.videoFrameRate)
-                            //video.height = video.width / video.metaData.resolution.width * video.metaData.resolution.height
                             selectArea.refreshHighlights()
+                            // play a very little bit of the video to show first frame in View
+                            play()
+                            pause()
                         }
                     }
 
@@ -587,16 +587,17 @@ Window {
                             }
                         }
 
-                        footer: Rectangle { 
-                            width: parent.width; height: 40
+                        footer: Rectangle {
+                            id: cutListViewFooter 
+                            width: parent.width
+                            height: 40
                             radius: 5 
                             anchors.topMargin: 40
                             Row {
-                                anchors.fill: parent
                                 Button {
-                                    anchors.left: parent.left
-                                    width: parent.width / 2
-                                    height: parent.height
+                                    //anchors.left: parent.left
+                                    width: cutListViewFooter.width / 2
+                                    height: cutListViewFooter.height
                                     focusPolicy: Qt.NoFocus
                                     text: 'Set start time'
                                     onClicked: {
@@ -604,9 +605,9 @@ Window {
                                     }
                                 }
                                 Button {
-                                    anchors.right: parent.right
-                                    width: parent.width / 2
-                                    height: parent.height
+                                    //anchors.right: parent.right
+                                    width: cutListViewFooter.width / 2
+                                    height: cutListViewFooter.height
                                     focusPolicy: Qt.NoFocus
                                     text: 'Set end time'
                                     onClicked: {
