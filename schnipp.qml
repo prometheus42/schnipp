@@ -136,9 +136,8 @@ Window {
     }
 
     function onCutlistEndButton() {
-        cutListModel.get(cutListModel.count-1).endTime = video.position
+        cutListModel.get(cutListView.currentIndex).endTime = video.position
     }
-
 
     function handleExport() {
         console.log('Export all data to JSON file...')
@@ -649,7 +648,7 @@ Window {
                                     width: cutListViewFooter.width / 2
                                     height: cutListViewFooter.height
                                     focusPolicy: Qt.NoFocus
-                                    text: 'Set start time'
+                                    text: qsTr('Set start time (S)')
                                     onClicked: {
                                         onCutlistStartButton()
                                     }
@@ -658,7 +657,7 @@ Window {
                                     width: cutListViewFooter.width / 2
                                     height: cutListViewFooter.height
                                     focusPolicy: Qt.NoFocus
-                                    text: 'Set end time'
+                                    text: qsTr('Set end time (E)')
                                     onClicked: {
                                         onCutlistEndButton()
                                     }
