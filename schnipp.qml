@@ -33,7 +33,6 @@ Window {
         if (minutes < 10) {minutes = "0"+minutes;}
         if (seconds < 10) {seconds = "0"+seconds;}
         return hours+':'+minutes+':'+seconds;
-        //return new Date(videoTime).toLocaleTimeString(Qt.locale('en_GB'), 'hh:mm:ss')
     }
 
     Timer {
@@ -132,6 +131,15 @@ Window {
         video.seek(video.duration)
     }
 
+    function onCutlistStartButton() {
+        cutListModel.append({'startTime': video.position, 'endTime': 42})
+    }
+
+    function onCutlistEndButton() {
+        cutListModel.get(cutListModel.count-1).endTime = video.position
+    }
+
+
     function handleExport() {
         console.log('Export all data to JSON file...')
         // create JSON object
@@ -169,7 +177,12 @@ Window {
                 console.log('Quitting Schnipp.')
                 Qt.quit()
             }
-            if (event.key == Qt.Key_Space) {
+            else if (event.key == Qt.Key_S) {
+                onCutlistStartButton()            }
+            else if (event.key == Qt.Key_E) {
+                onCutlistEndButton()
+            }
+            else if (event.key == Qt.Key_Space) {
                 doPlay()
             }
 
@@ -633,23 +646,21 @@ Window {
                             anchors.topMargin: 40
                             Row {
                                 Button {
-                                    //anchors.left: parent.left
                                     width: cutListViewFooter.width / 2
                                     height: cutListViewFooter.height
                                     focusPolicy: Qt.NoFocus
                                     text: 'Set start time'
                                     onClicked: {
-                                        cutListModel.append({'startTime': video.position, 'endTime': 42})
+                                        onCutlistStartButton()
                                     }
                                 }
                                 Button {
-                                    //anchors.right: parent.right
                                     width: cutListViewFooter.width / 2
                                     height: cutListViewFooter.height
                                     focusPolicy: Qt.NoFocus
                                     text: 'Set end time'
                                     onClicked: {
-                                        cutListModel.get(cutListModel.count-1).endTime = video.position
+                                        onCutlistEndButton()
                                     }
                                 }
                             }
