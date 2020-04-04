@@ -142,12 +142,15 @@ Window {
     Pane {
         id: mainPane
         anchors.fill: parent
+        focus: true
 
-        Keys.onSpacePressed: video.playbackState == MediaPlayer.PlayingState ? video.pause() : video.play()
         Keys.onPressed: {
             if (event.key == Qt.Key_Q) {
                 console.log('Quitting Schnipp.')
                 Qt.quit()
+            }
+            if (event.key == Qt.Key_Space) {
+                doPlay()
             }
 
             if ((event.key == Qt.Key_Right) && (event.modifiers & Qt.ControlModifier))
@@ -182,8 +185,8 @@ Window {
                 
                 Video {
                     id: video
-                    width: parent.width
-                    height: 500
+                    //width: parent.width
+                    //height: 500
                     Layout.fillHeight: true
                     Layout.fillWidth: true
 
@@ -215,7 +218,7 @@ Window {
                             console.log('Loaded resolution: ' + video.metaData.resolution)
                             console.log('Loaded pixelAspectRatio: ' + video.metaData.pixelAspectRatio)
                             console.log('Loaded videoFrameRate: ' + video.metaData.videoFrameRate)
-                            video.height = video.width / video.metaData.resolution.width * video.metaData.resolution.height
+                            //video.height = video.width / video.metaData.resolution.width * video.metaData.resolution.height
                             selectArea.refreshHighlights()
                         }
                     }
@@ -361,6 +364,7 @@ Window {
 
                         Button {
                             text:  qsTr('Choose directory...')
+                            focusPolicy: Qt.NoFocus
                             background.anchors.fill: this
                             spacing: 40
                             onClicked: onChooseFile()
@@ -369,30 +373,36 @@ Window {
                         Button {
                             id: playButton
                             text: qsTr('Play')
+                            focusPolicy: Qt.NoFocus
                             onClicked: doPlay()
                         }
                         Button {
                             text: qsTr('Stop')
+                            focusPolicy: Qt.NoFocus
                             onClicked: doStop()
                         }
                         Button {
                             text: qsTr('To Start')
+                            focusPolicy: Qt.NoFocus
                             onClicked: doGoStart()
                         }
                         Button {
                             text: qsTr('Rewind')
+                            focusPolicy: Qt.NoFocus
                             onClicked: {
                                 video.seek(video.position - 5000)
                             }
                         }
                         Button {
                             text: qsTr('Forward')
+                            focusPolicy: Qt.NoFocus
                             onClicked: {
                                 video.seek(video.position + 5000)
                             }
                         }
                         Button {
                             text: qsTr('To End')
+                            focusPolicy: Qt.NoFocus
                             onClicked: doGoEnd()
                         }
 
@@ -422,6 +432,7 @@ Window {
                         RadioButton {
                             checked: true
                             text: qsTr('Set Letterbox bars...')
+                            focusPolicy: Qt.NoFocus
                             onClicked: {
                                 selectArea.stage = 1
                                 //cutListPane.visible = false
@@ -429,6 +440,7 @@ Window {
                         }
                         RadioButton {
                             text: qsTr('Set logo...')
+                            focusPolicy: Qt.NoFocus
                             onClicked: {
                                 selectArea.stage = 2
                                 //cutListPane.visible = false
@@ -436,6 +448,7 @@ Window {
                         }
                         RadioButton {
                             text: qsTr('Set commercial breaks...')
+                            focusPolicy: Qt.NoFocus
                             onClicked: {
                                 selectArea.stage = 3
                                 //cutListPane.visible = true
@@ -443,6 +456,7 @@ Window {
                         }
                         RadioButton {
                             text: qsTr('Export...')
+                            focusPolicy: Qt.NoFocus
                             onClicked: {
                                 selectArea.stage = 4
                                 handleExport()
