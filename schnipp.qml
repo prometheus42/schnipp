@@ -145,6 +145,17 @@ Window {
         cutListModel.get(cutListView.currentIndex).endTime = video.position
     }
 
+    function seekVideo(delta) {
+        var newPosition = video.position + delta
+        if (newPosition < 0) {
+            newPosition = 0
+        }
+        if (newPosition > video.duration) {
+            newPosition = video.duration
+        }
+        video.seek(newPosition)
+    }
+
     function handleExport() {
         console.log('Export all data to JSON file...')
         // create JSON object
@@ -206,22 +217,22 @@ Window {
             }
 
             if ((event.key == Qt.Key_Right) && (event.modifiers & Qt.ControlModifier))
-                video.seek(video.position + 60000)
+                seekVideo(60000)
             else if ((event.key == Qt.Key_Right) && (event.modifiers & Qt.ShiftModifier))
-                video.seek(video.position + 250)
+                seekVideo(250)
             else if ((event.key == Qt.Key_Right) && (event.modifiers & Qt.AltModifier)) 
                 doGoEnd()
             else if ((event.key == Qt.Key_Right))
-                video.seek(video.position + 5000)
+                seekVideo(5000)
 
             if ((event.key == Qt.Key_Left) && (event.modifiers & Qt.ControlModifier))
-                video.seek(video.position - 60000)
+                seekVideo(-60000)
             else if ((event.key == Qt.Key_Left) && (event.modifiers & Qt.ShiftModifier))
-                video.seek(video.position - 250)
+                seekVideo(-250)
             else if ((event.key == Qt.Key_Left) && (event.modifiers & Qt.AltModifier)) 
                 doGoStart()
             else if ((event.key == Qt.Key_Left))
-                video.seek(video.position - 5000)
+                seekVideo(-5000)
         }
 
         RowLayout {
