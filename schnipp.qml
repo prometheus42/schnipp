@@ -393,9 +393,22 @@ Window {
                                 }
                             }
                             else if (stage == 2) {
-                                // TODO: Check if mouse.{x,y} is outside video widget.
-                                highlightLogo.width = (Math.abs(mouse.x - highlightLogo.x));
-                                highlightLogo.height = (Math.abs(mouse.y - highlightLogo.y));
+                                if (mouse.x <= highlightLogo.x) {
+                                    var distance = highlightLogo.width + (highlightLogo.x - mouse.x)
+                                    highlightLogo.x = mouse.x
+                                    highlightLogo.width = distance
+                                }
+                                else {
+                                    highlightLogo.width = Math.abs(mouse.x - highlightLogo.x);
+                                }
+                                if (mouse.y <= highlightLogo.y) {
+                                    var distance = (highlightLogo.y - mouse.y) + highlightLogo.height
+                                    highlightLogo.y = mouse.y
+                                    highlightLogo.height = distance
+                                }
+                                else {
+                                    highlightLogo.height = Math.abs(mouse.y - highlightLogo.y);
+                                }
                             }
                         }
                         onReleased: {
@@ -403,6 +416,7 @@ Window {
                                 console.log('Changed letterbox bars to: ' + topLetterboxBar + ', ' + bottomLetterboxBar)
                             }
                             else if (mouse.button === Qt.LeftButton && stage == 2) {
+                                // calculate coordinates regarding video resolution and saving them in properties
                                 var xs1 = highlightLogo.x
                                 var xs2 = highlightLogo.x + highlightLogo.width
                                 var ys1 = highlightLogo.y
