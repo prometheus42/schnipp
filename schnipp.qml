@@ -475,7 +475,7 @@ Window {
                         Menu {
                             id: contextMenuCrop
                             MenuItem {
-                                text: 'Delete crop bars'
+                                text: qsTr('Delete crop bars')
                                 onTriggered: {
                                     console.log('Deleting crop bars.')
                                     selectArea.highlightLetterbox1.y = 0
@@ -488,7 +488,7 @@ Window {
                         Menu {
                             id: contextMenuLogo
                             MenuItem {
-                                text: 'Delete logo'
+                                text: qsTr('Delete logo')
                                 onTriggered: {
                                     console.log('Deleting logo.')
                                     selectArea.highlightLogo.destroy()
@@ -760,7 +760,7 @@ Window {
                             color: '#000000ff'
                             Text {
                                 anchors.centerIn: parent
-                                text: 'Cut list'
+                                text: qsTr('Cut list')
                                 font.pixelSize: 18
                             }
                         }
@@ -777,6 +777,7 @@ Window {
                                     height: cutListViewFooter.height
                                     focusPolicy: Qt.NoFocus
                                     text: qsTr('Set start time (S)')
+                                    font.pixelSize: 12
                                     onClicked: {
                                         onCutlistStartButton()
                                     }
@@ -786,6 +787,7 @@ Window {
                                     height: cutListViewFooter.height
                                     focusPolicy: Qt.NoFocus
                                     text: qsTr('Set end time (E)')
+                                    font.pixelSize: 12
                                     onClicked: {
                                         onCutlistEndButton()
                                     }
