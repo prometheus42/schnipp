@@ -67,6 +67,7 @@ Window {
             selectArea.xv2 = delogoData[0] + delogoData[2]
             selectArea.yv2 = delogoData[1] + delogoData[3]
             var cutlistData = JsonObject['cutlist']
+            cutListModel.clear()
             for(var i = 0; i < cutlistData.length; i++) {
                 var startTime = Math.round(parseFloat(cutlistData[i][0])*1000)
                 var endTime = Math.round(parseFloat(cutlistData[i][1])*1000)
