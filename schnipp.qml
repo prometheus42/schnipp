@@ -1,8 +1,6 @@
 import QtQuick 2.9
 import QtQuick.Layouts 1.11
 import QtQuick.Controls 2.4
-import QtQuick.Controls.Material 2.4
-import QtQuick.Controls.Universal 2.4
 import QtMultimedia 5.6
 import QtQuick.Dialogs 1.3
 import QtQml 2.4
@@ -342,7 +340,7 @@ Window {
                         }
 
                         onPressed: {
-                            if (stage == 1) {
+                            if (mouse.button === Qt.LeftButton && stage == 1) {
                                 if (highlightLetterbox1 !== null && highlightLetterbox2 !== null) {
                                     console.log('Letterbox rectangles already instantiated.')
                                 }
@@ -364,7 +362,7 @@ Window {
                                     });
                                 }
                             }
-                            else if (stage == 2) {
+                            else if (mouse.button === Qt.LeftButton && stage == 2) {
                                 if (highlightLogo !== null) {
                                     highlightLogo.destroy()
                                 }
@@ -399,10 +397,10 @@ Window {
                             }
                         }
                         onReleased: {
-                            if (stage == 1) {
+                            if (mouse.button === Qt.LeftButton && stage == 1) {
                                 console.log('Changed letterbox bars to: ' + topLetterboxBar + ', ' + bottomLetterboxBar)
                             }
-                            else if (stage == 2) {
+                            else if (mouse.button === Qt.LeftButton && stage == 2) {
                                 var xs1 = highlightLogo.x
                                 var xs2 = highlightLogo.x + highlightLogo.width
                                 var ys1 = highlightLogo.y
@@ -458,10 +456,41 @@ Window {
                         property Rectangle highlightLetterbox2 : null;
 
                         Component {
-                            id: highlightComponent;
+                            id: highlightComponent
 
                             Rectangle {
-                                opacity: 0.35;
+                                id: highlightRectangle
+                                opacity: 0.45;
+
+                                MouseArea {
+                                    id: logoMouseArea
+                                    hoverEnabled: true
+                                    width: 10
+                                    height: 10
+                                    anchors.bottom: parent.bottom
+                                    anchors.right: parent.right
+
+                                    property bool dragging: false
+
+                                    cursorShape: "SizeFDiagCursor"
+                                    onPressed: {
+                                        if (selectArea.stage == 2 && containsMouse) {
+                                            console.log('start Dragging...')
+                                            dragging = true
+                                        }
+                                    }
+                                    onPositionChanged: {
+                                        if (selectArea.stage == 2 && dragging) {
+                                            parent.width = mouse.x - parent.x
+                                            parent.height = mouse.y - parent.y
+                                        }
+                                    }
+                                    onReleased: {
+                                        if (selectArea.stage == 2) {
+                                            dragging = false
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
