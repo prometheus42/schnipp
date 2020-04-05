@@ -17,7 +17,11 @@ Window {
     //visibility: "FullScreen"
     visibility: "Maximized"
 
-    Settings {  
+    Settings {
+        id: settings
+        property string defaultVideoFile: '/concat.mp4'
+        property string defaultConfigFile: '/drm_dvr.cfg'
+        property string lastDirectory: '.'
     }
 
     function formatTime(videoTime) {
@@ -44,17 +48,15 @@ Window {
         }
     }
 
-    property string currentDirectory
-
     function onDirectoryChosen(chosenDirectory) {
         // TODO: Find better way to handle path.
-        currentDirectory = chosenDirectory
+        settings.lastDirectory = chosenDirectory
         schnippWindow.title = `${qsTr('Schnipp!')} - ${chosenDirectory}`
         // TODO: Extract file name defaults to settings. 
-        console.log('You chose: ' + chosenDirectory + '/concat.mp4')
+        console.log('You chose: ' + chosenDirectory + settings.defaultVideoFile)
         // set internal variables for data from chosen directory
-        video.source = chosenDirectory + '/concat.mp4'
-        var JsonString = FileIO.readFile(chosenDirectory + '/drm_dvr.cfg')
+        video.source = chosenDirectory + settings.defaultVideoFile
+        var JsonString = FileIO.readFile(chosenDirectory + settings.defaultConfigFile)
         console.log('Loaded JSON data: ' + JsonString)
         try {
             var JsonObject= JSON.parse(JsonString);
@@ -83,7 +85,7 @@ Window {
     FileDialog {
         id: fileDialog
         title: qsTr('Choose a video file...')
-        //folder: shortcuts.home
+        folder: settings.lastDirectory
         selectMultiple: false
         selectFolder: true
         selectExisting: true
@@ -163,7 +165,7 @@ Window {
         // output JSON to file
         var jsonString = JSON.stringify(jsonOutput, null, 4)
         console.log('Export configuration: ' + jsonString)
-        FileIO.writeFile(currentDirectory + '/drm_dvr.cfg', jsonString)
+        FileIO.writeFile(settings.lastDirectory + settings.defaultConfigFile, jsonString)
         // write View to image file
         video.grabToImage(function(result) {
             result.saveToFile('screengrab.png');
@@ -191,9 +193,13 @@ Window {
                 Qt.quit()
             }
             else if (event.key == Qt.Key_S) {
-                onCutlistStartButton()            }
+                onCutlistStartButton()
+            }
             else if (event.key == Qt.Key_E) {
                 onCutlistEndButton()
+            }
+            else if (event.key == Qt.Key_F) {
+                handleExport()
             }
             else if (event.key == Qt.Key_Space) {
                 doPlay()
@@ -620,7 +626,6 @@ Window {
                             focusPolicy: Qt.NoFocus
                             enabled: false
                             onClicked: {
-                                selectArea.stage = 4
                                 handleExport()
                             }
                         }
