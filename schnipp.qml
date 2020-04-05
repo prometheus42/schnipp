@@ -393,21 +393,31 @@ Window {
                                 }
                             }
                             else if (stage == 2) {
-                                if (mouse.x <= highlightLogo.x) {
-                                    var distance = highlightLogo.width + (highlightLogo.x - mouse.x)
-                                    highlightLogo.x = mouse.x
-                                    highlightLogo.width = distance
+                                var mouseX = mouse.x
+                                var mouseY = mouse.y
+                                // clip mouse coordinates on selectArea
+                                if (mouseX > selectArea.width)
+                                    mouseX = selectArea.width
+                                if (mouseX < 0)
+                                    mouseX = 0
+                                if (mouseY > selectArea.height)
+                                    mouseY = selectArea.height
+                                if (mouseY < 0)
+                                    mouseY = 0
+                                // adjust highlight according to mouse motion
+                                if (mouseX <= highlightLogo.x) {
+                                    highlightLogo.width = highlightLogo.width + (highlightLogo.x - mouseX)
+                                    highlightLogo.x = mouseX
                                 }
                                 else {
-                                    highlightLogo.width = Math.abs(mouse.x - highlightLogo.x);
+                                    highlightLogo.width = Math.abs(mouseX - highlightLogo.x);
                                 }
-                                if (mouse.y <= highlightLogo.y) {
-                                    var distance = (highlightLogo.y - mouse.y) + highlightLogo.height
-                                    highlightLogo.y = mouse.y
-                                    highlightLogo.height = distance
+                                if (mouseY <= highlightLogo.y) {
+                                    highlightLogo.height = (highlightLogo.y - mouseY) + highlightLogo.height
+                                    highlightLogo.y = mouseY
                                 }
                                 else {
-                                    highlightLogo.height = Math.abs(mouse.y - highlightLogo.y);
+                                    highlightLogo.height = Math.abs(mouseY - highlightLogo.y);
                                 }
                             }
                         }
