@@ -173,13 +173,13 @@ Window {
     }
 
     Component.onCompleted: {
-        // check if a command line argument was given and open that directory if so
-        if (Qt.application.arguments.length > 1) {
-            console.log(`Found command line parameter: ${Qt.application.arguments}`)
-            onDirectoryChosen(Qt.application.arguments[1])
+        // check if a command line argument was given and open that directory if so        
+        if (typeof args !== 'undefined') {
+            console.log(`Command line arguments given: ${args}`)
+            onDirectoryChosen(args)
             video.recalculateSize()
             selectArea.refreshHighlights()
-        }
+        } 
     }
     
     Pane {

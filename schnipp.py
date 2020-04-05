@@ -10,9 +10,10 @@ Sources:
 """
 
 import sys
+import argparse
 
-from PyQt5.QtCore import QUrl, QTranslator, QLocale, QObject, pyqtSlot
-from PyQt5.QtQml import QQmlApplicationEngine, qmlRegisterType
+from PyQt5.QtCore import QTranslator, QLocale, QObject, pyqtSlot
+from PyQt5.QtQml import QQmlApplicationEngine
 from PyQt5.QtGui import QIcon, QGuiApplication
 
 
@@ -45,10 +46,14 @@ class FileIO(QObject):
 
 
 if __name__ == '__main__':
+    # handle command line arguments
     sys_argv = sys.argv
-    sys_argv += ['--style', 'Fusion']
+    parser = argparse.ArgumentParser(description='Schnipp is a simple GUI to clip letterbox bars and mark broadcaster logos in video files.')
+    parser.add_argument('-p', '--path', help='path to directory with recordings without trailing slash, e.g. file:///home/bob/video')
+    args = parser.parse_args()
     # setup Qt application
-    app = QGuiApplication(sys.argv)
+    style_argv = ['--style', 'Fusion']
+    app = QGuiApplication(style_argv)
     app.setWindowIcon(QIcon("images/icon.png"))
     app.setOrganizationName('Christian Wichmann')
     app.setApplicationName('Schnipp!')
@@ -60,6 +65,8 @@ if __name__ == '__main__':
     engine = QQmlApplicationEngine()
     fileIO = FileIO()
     engine.rootContext().setContextProperty('FileIO', fileIO)
+    if args.path:
+        engine.rootContext().setContextProperty('args', args.path)
     engine.load('schnipp.qml')
     if not engine.rootObjects():
         sys.exit(-1)
