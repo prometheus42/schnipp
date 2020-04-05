@@ -305,38 +305,40 @@ Window {
                         property int yv1: 0 
                         property int yv2: 0
 
-                        function refreshHighlights() {       
-                                console.log('Preparing views for highlights...')
-                                if (highlightLetterbox1 !== null) {
-                                    highlightLetterbox1.destroy()
-                                }
-                                if (highlightLetterbox2 !== null) {
-                                    highlightLetterbox2.destroy()
-                                }
-                                if (highlightLogo !== null) {
-                                    highlightLogo.destroy()
-                                }
-                                highlightLetterbox1 = highlightComponent.createObject(selectArea, {
-                                    'y': 0,
-                                    'height': parent.height / video.metaData.resolution.height * topLetterboxBar,
-                                    'color': 'green',
-                                    'anchors.left': selectArea.left,
-                                    'anchors.right': selectArea.right
-                                });
-                                highlightLetterbox2 = highlightComponent.createObject(selectArea, {
-                                    'y': selectArea.height - (parent.height / video.metaData.resolution.height * bottomLetterboxBar),
-                                    'height': parent.height / video.metaData.resolution.height * bottomLetterboxBar,
-                                    'color': 'green',
-                                    'anchors.left': selectArea.left,
-                                    'anchors.right': selectArea.right
-                                });
-                                highlightLogo = highlightComponent.createObject(selectArea, {
-                                    'x' : parent.width / video.metaData.resolution.width * xv1,
-                                    'y' : parent.height / video.metaData.resolution.height * yv1,
-                                    'width' : parent.width / video.metaData.resolution.width * (xv2-xv1),
-                                    'height' : parent.height / video.metaData.resolution.height * (yv2-yv1),
-                                    'color': 'yellow'
-                                });
+                        function refreshHighlights() {
+                            // build highlights for crop bars and logo from properties in case they were
+                            // loaded from config file at the beginnning of editing
+                            console.log('Preparing views for highlights...')
+                            if (highlightLetterbox1 !== null) {
+                                highlightLetterbox1.destroy()
+                            }
+                            if (highlightLetterbox2 !== null) {
+                                highlightLetterbox2.destroy()
+                            }
+                            if (highlightLogo !== null) {
+                                highlightLogo.destroy()
+                            }
+                            highlightLetterbox1 = highlightComponent.createObject(selectArea, {
+                                'y': 0,
+                                'height': parent.height / video.metaData.resolution.height * topLetterboxBar,
+                                'color': 'green',
+                                'anchors.left': selectArea.left,
+                                'anchors.right': selectArea.right
+                            });
+                            highlightLetterbox2 = highlightComponent.createObject(selectArea, {
+                                'y': selectArea.height - (parent.height / video.metaData.resolution.height * bottomLetterboxBar),
+                                'height': parent.height / video.metaData.resolution.height * bottomLetterboxBar,
+                                'color': 'green',
+                                'anchors.left': selectArea.left,
+                                'anchors.right': selectArea.right
+                            });
+                            highlightLogo = highlightComponent.createObject(selectArea, {
+                                'x' : parent.width / video.metaData.resolution.width * xv1,
+                                'y' : parent.height / video.metaData.resolution.height * yv1,
+                                'width' : parent.width / video.metaData.resolution.width * (xv2-xv1),
+                                'height' : parent.height / video.metaData.resolution.height * (yv2-yv1),
+                                'color': 'yellow'
+                            });
                         }
 
                         onPressed: {
@@ -378,16 +380,16 @@ Window {
                             // on move, update the width of rectangle
                             if (stage == 1) {
                                 if (mouse.y < parent.height/2) {
-                                    highlightLetterbox1.height = Math.abs(selectArea.y - mouse.y)
-                                    highlightLetterbox2.y = selectArea.height - Math.abs(selectArea.y - mouse.y)
-                                    highlightLetterbox2.height = Math.abs(selectArea.y - mouse.y)
-                                    topLetterboxBar = video.metaData.resolution.height / parent.height * Math.abs(selectArea.y - mouse.y)
+                                    highlightLetterbox1.height = Math.max(0, mouse.y - selectArea.y)
+                                    highlightLetterbox2.y = selectArea.height - highlightLetterbox1.height
+                                    highlightLetterbox2.height = highlightLetterbox1.height
+                                    topLetterboxBar = video.metaData.resolution.height / parent.height * Math.max(0, mouse.y - selectArea.y)
                                     bottomLetterboxBar = topLetterboxBar
                                 }
                                 else {
-                                    highlightLetterbox2.y = mouse.y
-                                    highlightLetterbox2.height = Math.abs(selectArea.height - mouse.y)
-                                    bottomLetterboxBar = video.metaData.resolution.height / parent.height * Math.abs(selectArea.height - mouse.y)
+                                    highlightLetterbox2.y = selectArea.height - Math.max(0, selectArea.height - mouse.y)
+                                    highlightLetterbox2.height = Math.max(0, selectArea.height - mouse.y)
+                                    bottomLetterboxBar = video.metaData.resolution.height / parent.height * Math.max(0, selectArea.height - mouse.y)
                                 }
                             }
                             else if (stage == 2) {
