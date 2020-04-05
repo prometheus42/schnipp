@@ -73,6 +73,7 @@ Window {
                 var endTime = Math.round(parseFloat(cutlistData[i][1])*1000)
                 cutListModel.append({'startTime': startTime, 'endTime': endTime})
             }
+            exportButton.enabled = true
         }
         catch (e) {
             console.log(`Could not parse JSON file: ${e}`)
@@ -614,8 +615,10 @@ Window {
                             }
                         }
                         Button {
+                            id: exportButton
                             text: qsTr('Export...')
                             focusPolicy: Qt.NoFocus
+                            enabled: false
                             onClicked: {
                                 selectArea.stage = 4
                                 handleExport()
