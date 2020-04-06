@@ -70,8 +70,8 @@ Window {
         try {
             var JsonObject= JSON.parse(JsonString);
             var cropData = JsonObject['crop']
-            selectArea.bottomLetterboxBar = cropData[1]
-            selectArea.topLetterboxBar = cropData[1]
+            selectArea.bottomLetterboxBar = Math.floor(cropData[1] / 2)
+            selectArea.topLetterboxBar = Math.floor(cropData[1] / 2)
             var delogoData = JsonObject['delogo']
             selectArea.xv1 = delogoData[0]
             selectArea.yv1 = delogoData[1]
@@ -170,7 +170,7 @@ Window {
         console.log('Export all data to JSON file...')
         // create JSON object
         var jsonOutput = {
-            crop: [0, selectArea.topLetterboxBar],
+            crop: [0, selectArea.topLetterboxBar + selectArea.bottomLetterboxBar],
             //crop: ['in_w', `in_h-${selectArea.bottomLetterboxBar+selectArea.topLetterboxBar}`, '0', `${selectArea.topLetterboxBar}`],
             delogo: [selectArea.xv1, selectArea.yv1, selectArea.xv2-selectArea.xv1, selectArea.yv2-selectArea.yv1],
             cutlist: []
