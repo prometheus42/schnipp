@@ -69,14 +69,18 @@ Window {
         console.log('Loaded JSON data: ' + JsonString)
         try {
             var JsonObject= JSON.parse(JsonString);
-            var cropData = JsonObject['crop']
-            selectArea.bottomLetterboxBar = Math.floor(cropData[1] / 2)
-            selectArea.topLetterboxBar = Math.floor(cropData[1] / 2)
-            var delogoData = JsonObject['delogo']
-            selectArea.xv1 = delogoData[0]
-            selectArea.yv1 = delogoData[1]
-            selectArea.xv2 = delogoData[0] + delogoData[2]
-            selectArea.yv2 = delogoData[1] + delogoData[3]
+            if (JsonObject['crop'] !== null) {
+                var cropData = JsonObject['crop']
+                selectArea.bottomLetterboxBar = Math.floor(cropData[1] / 2)
+                selectArea.topLetterboxBar = Math.floor(cropData[1] / 2)
+            }
+            if (JsonObject['delogo'] !== null) {
+                var delogoData = JsonObject['delogo']
+                selectArea.xv1 = delogoData[0]
+                selectArea.yv1 = delogoData[1]
+                selectArea.xv2 = delogoData[0] + delogoData[2]
+                selectArea.yv2 = delogoData[1] + delogoData[3]
+            }
             var cutlistData = JsonObject['cutlist']
             cutListModel.clear()
             for(var i = 0; i < cutlistData.length; i++) {
@@ -169,10 +173,11 @@ Window {
     function handleExport() {
         console.log('Export all data to JSON file...')
         // create JSON object
+        var cropValue = (selectArea.topLetterboxBar !== 0) ? [0, selectArea.topLetterboxBar + selectArea.bottomLetterboxBar] : null
+        var delogoValue = (selectArea.xv1 !== 0) ? [selectArea.xv1, selectArea.yv1, selectArea.xv2-selectArea.xv1, selectArea.yv2-selectArea.yv1] : null
         var jsonOutput = {
-            crop: [0, selectArea.topLetterboxBar + selectArea.bottomLetterboxBar],
-            //crop: ['in_w', `in_h-${selectArea.bottomLetterboxBar+selectArea.topLetterboxBar}`, '0', `${selectArea.topLetterboxBar}`],
-            delogo: [selectArea.xv1, selectArea.yv1, selectArea.xv2-selectArea.xv1, selectArea.yv2-selectArea.yv1],
+            crop: cropValue,
+            delogo: delogoValue,
             cutlist: []
         };
         // add all entries from cut list
@@ -542,6 +547,8 @@ Window {
                                     selectArea.highlightLetterbox1.height = 0
                                     selectArea.highlightLetterbox2.y = selectArea.height
                                     selectArea.highlightLetterbox2.height = 0
+                                    selectArea.topLetterboxBar = 0
+                                    selectArea.bottomLetterboxBar = 0
                                 }
                             }
                         }
@@ -551,7 +558,14 @@ Window {
                                 text: qsTr('Delete logo')
                                 onTriggered: {
                                     console.log('Deleting logo.')
-                                    selectArea.highlightLogo.destroy()
+                                    selectArea.highlightLogo.x = 0
+                                    selectArea.highlightLogo.y = 0
+                                    selectArea.highlightLogo.width = 0
+                                    selectArea.highlightLogo.height = 0
+                                    selectArea.xv1 = 0
+                                    selectArea.xv2 = 0
+                                    selectArea.yv1 = 0
+                                    selectArea.yv2 = 0
                                 }
                             }
                         }
