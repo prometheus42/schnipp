@@ -75,11 +75,11 @@ Window {
                 var endTime = Math.round(parseFloat(cutlistData[i][1])*1000)
                 cutListModel.append({'startTime': startTime, 'endTime': endTime})
             }
-            exportButton.enabled = true
         }
         catch (e) {
             console.log(`Could not parse JSON file: ${e}`)
         }
+        exportButton.enabled = true
     }
 
     FileDialog {
