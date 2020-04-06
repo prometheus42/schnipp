@@ -12,9 +12,11 @@ Sources:
 import sys
 import argparse
 
-from PyQt5.QtCore import QTranslator, QLocale, QObject, pyqtSlot
+from PyQt5.QtCore import QTranslator, QLocale, QObject, pyqtSlot, pyqtSignal
 from PyQt5.QtQml import QQmlApplicationEngine
 from PyQt5.QtGui import QIcon, QGuiApplication
+
+import detect_logo
 
 
 class FileIO(QObject):
@@ -45,6 +47,20 @@ class FileIO(QObject):
         return ''
 
 
+class ImageProcessing(QObject):
+
+    processingReady = pyqtSignal(int, int, int, int)
+
+    def __init__(self):
+        QObject.__init__(self)
+
+    @pyqtSlot(int)
+    def execute(self, no):
+        file_list = ['./screengrab_{}.png'.format(i) for i in range(1, no+1)]
+        result = detect_logo.detect_logo(file_list)
+        self.processingReady.emit(*result)
+
+
 if __name__ == '__main__':
     # handle command line arguments
     sys_argv = sys.argv
@@ -65,6 +81,8 @@ if __name__ == '__main__':
     engine = QQmlApplicationEngine()
     fileIO = FileIO()
     engine.rootContext().setContextProperty('FileIO', fileIO)
+    imageProcessing = ImageProcessing()
+    engine.rootContext().setContextProperty('ImageProcessing', imageProcessing)
     if args.path:
         engine.rootContext().setContextProperty('args', args.path)
     engine.load('schnipp.qml')
