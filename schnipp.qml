@@ -41,11 +41,20 @@ Window {
         /**
          * Refreshes elapsed time label and progress bar to show video position.
          **/
+        id: updateTimer
         interval: 100; running: true; repeat: true
         onTriggered: {
             elapsedTimeLabel.text = formatTime(video.position) + ' / ' + formatTime(video.duration)
             videoProgressBar.value = video.position / video.duration
         }
+    }
+
+    Timer {
+        id: exportTimer
+        property int no: 0
+        property int lifetime: 10
+        property int oldPosition: 0
+        property int stepTime: 0
     }
 
     function onDirectoryChosen(chosenDirectory) {
@@ -80,6 +89,7 @@ Window {
             console.log(`Could not parse JSON file: ${e}`)
         }
         exportButton.enabled = true
+        processButton.enabled = true
     }
 
     FileDialog {
@@ -177,10 +187,60 @@ Window {
         var jsonString = JSON.stringify(jsonOutput, null, 4)
         console.log('Export configuration: ' + jsonString)
         FileIO.writeFile(settings.lastDirectory + settings.defaultConfigFile, jsonString)
-        // write View to image file
-        video.grabToImage(function(result) {
-            result.saveToFile('screengrab.png');
-        });
+    }
+
+    function writeImageToFile() {
+        exportTimer.no += 1
+        console.log(`Export image no. ${exportTimer.no}`)
+        if (exportTimer.no >= exportTimer.lifetime) {
+            exportTimer.stop()
+            video.seek(exportTimer.oldPosition)
+            ImageProcessing.execute(10)
+        }
+        else {
+            video.grabToImage(function(result) {
+                var filename = `screengrab_${exportTimer.no}.png`
+                console.log(filename)
+                result.saveToFile(filename)
+            });
+            video.seek(exportTimer.no * exportTimer.stepTime)
+            video.play()
+            video.pause()
+        }
+    }
+
+    function handleImageProcessing() {
+        // select some images from video and process it to find logo
+        selectArea.highlightLetterbox1.destroy()
+        selectArea.highlightLetterbox2.destroy()
+        if (selectArea.highlightLogo !== null) {
+            selectArea.highlightLogo.destroy()
+        }
+        //
+        ImageProcessing.processingReady.connect(function (x, y, width, height) {
+            console.log(`Processing ready: (${x} ${y} ${width} ${height})`)
+            selectArea.highlightLogo = highlightComponent.createObject(selectArea, {
+                'x' : x,
+                'y' : y,
+                'width' : width,
+                'height' : height,
+                'color': 'yellow'
+            });
+        })
+        // build timer to grab images
+        exportTimer.interval = 3000;
+        exportTimer.lifetime = 15
+        var stepTime = Math.floor(video.duration / (exportTimer.lifetime + 3))
+        console.log(`Step time for image export is ${stepTime}`)
+        exportTimer.stepTime = stepTime
+        exportTimer.no = 1
+        exportTimer.oldPosition = video.position
+        exportTimer.repeat = true;
+        exportTimer.triggered.connect(writeImageToFile);
+        // seek to first image to grab
+        video.seek(exportTimer.stepTime * exportTimer.no)
+        // start timer to grab following images
+        exportTimer.start();
     }
 
     Component.onCompleted: {
@@ -520,7 +580,6 @@ Window {
                                     cursorShape: "SizeFDiagCursor"
                                     onPressed: {
                                         if (selectArea.stage == 2 && containsMouse) {
-                                            console.log('start Dragging...')
                                             dragging = true
                                         }
                                     }
@@ -614,6 +673,8 @@ Window {
 
                 Pane {
                     Row {
+                        spacing: 10
+
                         RadioButton {
                             checked: true
                             text: qsTr('Set Letterbox bars...')
@@ -629,6 +690,15 @@ Window {
                             onClicked: {
                                 selectArea.stage = 2
                                 //cutListPane.visible = false
+                            }
+                        }
+                        Button {
+                            id: processButton
+                            text: qsTr('Process image...')
+                            focusPolicy: Qt.NoFocus
+                            enabled: false
+                            onClicked: {
+                                handleImageProcessing()
                             }
                         }
                         Button {
