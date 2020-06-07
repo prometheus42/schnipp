@@ -57,6 +57,11 @@ Window {
         property int stepTime: 0
     }
 
+    Timer {
+        id: loadedTimer
+        interval: 1000; running: false; repeat: false
+    }
+
     function onDirectoryChosen(chosenDirectory) {
         // TODO: Find better way to handle path.
         settings.lastDirectory = chosenDirectory
@@ -248,13 +253,23 @@ Window {
         exportTimer.start();
     }
 
+    function delay(delayTime, cb) {
+        // setup timer to execute callback only once after delay time has elapsed
+        loadedTimer.interval = delayTime;
+        loadedTimer.repeat = false;
+        loadedTimer.triggered.connect(cb);
+        loadedTimer.start();
+    }
+
     Component.onCompleted: {
         // check if a command line argument was given and open that directory if so        
         if (typeof args !== 'undefined') {
             console.log(`Command line arguments given: ${args}`)
             onDirectoryChosen(args)
-            video.recalculateSize()
-            selectArea.refreshHighlights()
+            delay(1000, function() {
+                video.recalculateSize()
+                selectArea.refreshHighlights()
+            });
         } 
     }
     
